@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="114.212.190.230">
+    <serverData>
+      <paths name="114.212.190.230">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/projects/nju_nlp_tools" local="$PROJECT_DIR$" web="/home/baoy/projects/nju_nlp_tools" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="114.212.190.232">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/projects/nju_nlp_tools" local="$PROJECT_DIR$" web="/home/baoy/projects/nju_nlp_tools" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>

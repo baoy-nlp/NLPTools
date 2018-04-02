@@ -1,14 +1,16 @@
 
 NLP-TOOLS
 ---
-nlp-tools for token,tagging,parsing
+nlp-tools for token, tagging, name entity recognition, syntax parsing.
 
 basic structure
 ---
-1. Character: 字符 
-2. Word：characters-tag
-3. CoreMap：承接输入输出
-    1. words
-    2. tags
-    3. targets
-4. 
+Representation-Inference Framework
+
+core-nlp:
+- data: load data and make vocab
+- inference: decoding algorithm
+- models: representation layer
+- utils: core nlp utils
+
+njutagger: an example of model of pytorch's implementation.

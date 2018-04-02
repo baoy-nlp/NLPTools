@@ -242,8 +242,6 @@ class Parser(object):
             Follow softmax distribution for structural data.
         """
 
-        network.prep_params()
-
         struct_data = {}
         label_data = {}
 
@@ -255,7 +253,7 @@ class Parser(object):
 
         w = data['w']
         t = data['t']
-        fwd, back = network.evaluate_recurrent(w, t, test=True)
+        fwd, back = network.evaluate_word(w, t, test=True)
 
         for step in xrange(2 * n - 1):
 
@@ -275,14 +273,14 @@ class Parser(object):
                     action = correct_action
                 else:
                     left, right = features
-                    scores = network.evaluate_struct(
+                    scores = network(
                         fwd,
                         back,
                         left,
                         right,
+                        'struct',
                         test=True,
-                    ).npvalue()
-
+                    ).data.numpy()
                     # sample from distribution
                     exp = np.exp(scores * alpha)
                     softmax = exp / (exp.sum())
@@ -305,13 +303,14 @@ class Parser(object):
                 action = correct_action
             else:
                 left, right = features
-                scores = network.evaluate_label(
+                scores = network(
                     fwd,
                     back,
                     left,
                     right,
+                    'label',
                     test=True,
-                ).npvalue()
+                ).data.numpy()
                 if step < (2 * n - 2):
                     action_index = np.argmax(scores)
                 else:
@@ -319,7 +318,7 @@ class Parser(object):
                 action = fm.l_action(action_index)
             state.take_action(action)
 
-        predicted = state.stack[0][2][0]
+        predicted = state.tree()
         predicted.propagate_sentence(sentence)
         accuracy = predicted.compare(tree)
 
@@ -335,14 +334,12 @@ class Parser(object):
     @staticmethod
     def parse(sentence, fm, network):
 
-        network.prep_params()
-
         n = len(sentence)
         state = Parser(n)
 
         w, t = fm.index_sentences(sentence)
 
-        fwd, back = network.evaluate_recurrent(w, t, test=True)
+        fwd, back = network.evaluate_word(w, t, test=True)
 
         for step in xrange(2 * n - 1):
 
@@ -352,13 +349,14 @@ class Parser(object):
                 action = 'comb'
             else:
                 left, right = state.s_features()
-                scores = network.evaluate_struct(
+                scores = network(
                     fwd,
                     back,
                     left,
                     right,
+                    'struct',
                     test=True,
-                ).npvalue()
+                ).data.numpy()
                 action_index = np.argmax(scores)
                 action = fm.s_action(action_index)
             state.take_action(action)
@@ -369,8 +367,9 @@ class Parser(object):
                 back,
                 left,
                 right,
+                'label',
                 test=True,
-            ).npvalue()
+            ).data.numpy()
             if step < (2 * n - 2):
                 action_index = np.argmax(scores)
             else:

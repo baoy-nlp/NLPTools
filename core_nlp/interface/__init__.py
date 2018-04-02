@@ -1,0 +1,1 @@
+from core_nlp.interface.parser_main import *

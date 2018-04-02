@@ -51,8 +51,9 @@ class PhraseTree(object):
             to all nodes of a tree.
         """
         self.sentence = sentence
-        for child in self.children:
-            child.propagate_sentence(sentence)
+        if self.children is not None:
+            for child in self.children:
+                child.propagate_sentence(sentence)
 
     def pretty(self, level=0, marker='  '):
         pad = marker * level
@@ -193,7 +194,7 @@ class PhraseTree(object):
             return result
 
     @staticmethod
-    def load_treefile(fname):
+    def load_trees(fname):
         trees = []
         for line in open(fname):
             t = PhraseTree.parse(line)
@@ -215,7 +216,7 @@ class PhraseTree(object):
 
     @staticmethod
     def load_tree2sents(tree_file, sent_file):
-        trees = PhraseTree.load_treefile(tree_file)
+        trees = PhraseTree.load_trees(tree_file)
 
         def treesent2sent(sentence):
             sent = ""

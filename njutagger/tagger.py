@@ -47,6 +47,7 @@ class LSTMTagger(nn.Module):
         self.char_emb_dim = char_emb_dim
         self.word_embedding = nn.Embedding(vocab_size, word_emb_dim)
         self.char_embedding = nn.Embedding(char_size, char_emb_dim)
+
         self.char_lstm = nn.LSTM(char_emb_dim, char_emb_dim)
         self.lstm = nn.LSTM(word_emb_dim + char_emb_dim, hidden_dim)
         self.hidden2tag = nn.Linear(hidden_dim, tagset_size)
@@ -135,6 +136,10 @@ for epoch in range(300):
 
 # after training
 print('after training')
+
+torch.save(model, 'params.pth')
+model = torch.load('params.pth')
+
 sentence_word = prepare_sequence(training_data[0][0], word_to_ix)
 sent_chars = []
 for w in training_data[0][0]:

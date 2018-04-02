@@ -5,12 +5,13 @@ Recursive representation of a phrase-structure parse tree
     for natural language sentences.
 """
 
+from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
 from collections import defaultdict
 
-from measures import FScore
+from core_nlp.utils.measures import FScore
 
 
 class PhraseTree(object):

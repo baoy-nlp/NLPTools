@@ -72,7 +72,7 @@ class LSTMTagger(nn.Module):
         self.hidden = self.initHidden()
         lstm_out, self.hidden = self.lstm(embeded.view(sentence_size, 1, -1), self.hidden)
         tag_space = self.hidden2tag(lstm_out.view(sentence_size, -1))
-        tag_scores = F.log_softmax(tag_space)
+        tag_scores = F.log_softmax(tag_space, dim=0)
         return tag_scores
 
     def initHidden(self):

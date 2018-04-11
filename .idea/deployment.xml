@@ -16,6 +16,13 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="Copy of project-level server '114.212.190.230'">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/projects/nju_nlp_tools" local="$PROJECT_DIR$" web="/home/baoy/projects/nju_nlp_tools" />
+          </mappings>
+        </serverdata>
+      </paths>
     </serverData>
     <option name="myAutoUpload" value="ALWAYS" />
   </component>

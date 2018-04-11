@@ -10,7 +10,7 @@ import argparse
 import sys
 
 from core_nlp.data.phrase_tree import PhraseTree
-from core_nlp.models.parser.parser_fm import FeatureMapper
+from core_nlp.models.parser.features import FeatureMapper
 from core_nlp.models.parser.trainer import train
 
 if __name__ == '__main__':

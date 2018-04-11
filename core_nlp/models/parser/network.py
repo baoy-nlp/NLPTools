@@ -169,6 +169,7 @@ class Network(nn.Module):
             't': t,
             'struct_data': struct_data,
             'label_data': label_data,
+            'accuracy': predicted.compare(tree)
         }
 
         return example
@@ -258,4 +259,4 @@ class Network(nn.Module):
                 probs = F.softmax(scores, dim=0)
                 loss = -torch.log(probs[correct])
                 this_loss += loss
-            return this_loss, len(example["label_data"]) + len(example["struct_data"])
+            return this_loss, example

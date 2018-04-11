@@ -6,8 +6,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import numpy as np
-
 from core_nlp.data.phrase_tree import PhraseTree
 from core_nlp.utils.measures import FScore
 
@@ -236,153 +234,18 @@ class Parser(object):
         return (s_features, l_features)
 
     @staticmethod
-    def exploration(data, fm, network, alpha=1.0, beta=0):
+    def exploration(data, fm, network, unk_param=0.75, alpha=1.0, beta=0):
         """
         Only data from this parse, including mandatory S-actions.
             Follow softmax distribution for structural data.
         """
-
-        struct_data = {}
-        label_data = {}
-
-        tree = data['tree']
-        sentence = tree.sentence
-
-        n = len(sentence)
-        state = Parser(n)
-
-        w = data['w']
-        t = data['t']
-        fwd, back = network.evaluate_word(w, t, test=True)
-
-        for step in xrange(2 * n - 1):
-
-            features = state.s_features()
-            if not state.can_combine():
-                action = 'sh'
-                correct_action = 'sh'
-            elif not state.can_shift():
-                action = 'comb'
-                correct_action = 'comb'
-            else:
-
-                correct_action = state.s_oracle(tree)
-
-                r = np.random.random()
-                if r < beta:
-                    action = correct_action
-                else:
-                    left, right = features
-                    scores = network(
-                        fwd,
-                        back,
-                        left,
-                        right,
-                        'struct',
-                        test=True,
-                    ).data.numpy()
-                    # sample from distribution
-                    exp = np.exp(scores * alpha)
-                    softmax = exp / (exp.sum())
-                    r = np.random.random()
-
-                    if r <= softmax[0]:
-                        action = 'sh'
-                    else:
-                        action = 'comb'
-
-            struct_data[features] = fm.s_action_index(correct_action)
-            state.take_action(action)
-
-            features = state.l_features()
-            correct_action = state.l_oracle(tree)
-            label_data[features] = fm.l_action_index(correct_action)
-
-            r = np.random.random()
-            if r < beta:
-                action = correct_action
-            else:
-                left, right = features
-                scores = network(
-                    fwd,
-                    back,
-                    left,
-                    right,
-                    'label',
-                    test=True,
-                ).data.numpy()
-                if step < (2 * n - 2):
-                    action_index = np.argmax(scores)
-                else:
-                    action_index = 1 + np.argmax(scores[1:])
-                action = fm.l_action(action_index)
-            state.take_action(action)
-
-        predicted = state.tree()
-        predicted.propagate_sentence(sentence)
-        accuracy = predicted.compare(tree)
-
-        example = {
-            'w': w,
-            't': t,
-            'struct_data': struct_data,
-            'label_data': label_data,
-        }
-
-        return example, accuracy
+        loss, example = network(data, fm, alpha, beta, unk_param, test=False)
+        total_states = len(example["struct_data"]) + len(example["label_data"])
+        return loss, total_states, example["accuracy"]
 
     @staticmethod
     def parse(sentence, fm, network):
-
-        n = len(sentence)
-        state = Parser(n)
-
-        w, t = fm.index_sentences(sentence)
-
-        fwd, back = network.evaluate_word(w, t, test=True)
-
-        for step in xrange(2 * n - 1):
-
-            if not state.can_combine():
-                action = 'sh'
-            elif not state.can_shift():
-                action = 'comb'
-            else:
-                left, right = state.s_features()
-                scores = network(
-                    fwd,
-                    back,
-                    left,
-                    right,
-                    'struct',
-                    test=True,
-                ).data.numpy()
-                action_index = np.argmax(scores)
-                action = fm.s_action(action_index)
-            state.take_action(action)
-
-            left, right = state.l_features()
-            scores = network.evaluate_label(
-                fwd,
-                back,
-                left,
-                right,
-                'label',
-                test=True,
-            ).data.numpy()
-            if step < (2 * n - 2):
-                action_index = np.argmax(scores)
-            else:
-                action_index = 1 + np.argmax(scores[1:])
-            action = fm.l_action(action_index)
-            state.take_action(action)
-
-        if not state.finished():
-            raise RuntimeError('Bad ending state!')
-
-        tree = state.stack[0][2][0]
-        tree.propagate_sentence(sentence)
-        return tree
+        return network._inference(sentence, fm)
 
     @staticmethod
     def evaluate_corpus(trees, fm, network):

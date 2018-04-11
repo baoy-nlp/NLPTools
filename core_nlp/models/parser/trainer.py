@@ -62,12 +62,15 @@ def train(fm, args):
             batch = training_data[(b * batch_size): ((b + 1) * batch_size)]
             batch_loss = None
             for example in batch:
-                example_Loss, example_states = network(example, fm, alpha, beta, unk_param, test=False)
+                example_Loss, example_states, acc = Parser.exploration(example, fm, network, alpha, beta, unk_param)
                 total_states += example_states
                 if batch_loss is not None:
                     batch_loss += example_Loss
                 else:
                     batch_loss = example_Loss
+                training_acc += acc
+
+            total_cost += batch_loss.data.numpy()[0]
             batch_loss.backward()
             optimizer.step()
 

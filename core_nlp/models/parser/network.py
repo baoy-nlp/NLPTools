@@ -13,6 +13,7 @@ from torch.autograd import Variable
 
 from core_nlp.inference.parser import Parser
 from core_nlp.models.parser.encoder import BILSTMEncoder
+from core_nlp.utils.global_names import GlobalNames
 
 torch.manual_seed(1)
 
@@ -21,15 +22,11 @@ class Network(nn.Module):
     def __init__(self,
                  fm,
                  args,
-                 cuda=None,
                  ):
         super(Network, self).__init__()
         self.word_emb = nn.Embedding(fm.total_words(), args.word_dims)
         self.tag_emb = nn.Embedding(fm.total_tags(), args.tag_dims)
-        self.is_cuda = True if cuda is not None else False
 
-        struct = 4
-        label = 3
         single_span = 4 * args.lstm_units
 
         self.encoder = BILSTMEncoder(
@@ -42,20 +39,25 @@ class Network(nn.Module):
         self.drop = nn.Dropout(args.droprate)
 
         self.struct_nn = nn.Sequential(
-            nn.Linear(struct * single_span, args.hidden_units),
+            nn.Linear(4 * single_span, args.hidden_units),
             nn.ReLU(),
             nn.Linear(args.hidden_units, 2)
         )
 
         self.label_nn = nn.Sequential(
-            nn.Linear(label * single_span, args.hidden_units),
+            nn.Linear(3 * single_span, args.hidden_units),
             nn.ReLU(),
             nn.Linear(args.hidden_units, fm.total_label_actions())
         )
+        if GlobalNames.use_gpu:
+            self.cuda()
 
     def prepare_sequence(self, seq):
         tensor = torch.LongTensor(seq)
-        return Variable(tensor)
+        if GlobalNames.use_gpu:
+            return Variable(tensor).cuda()
+        else:
+            return Variable(tensor)
 
     def evaluate_action(self, fwd_out, back_out, lefts, rights, eval_type='struct', test=False):
         fwd_span_out = []
@@ -127,7 +129,11 @@ class Network(nn.Module):
                         right,
                         'struct',
                         test=True,
-                    ).data.numpy()
+                    )
+                    if GlobalNames.use_gpu:
+                        scores = scores.cpu().data.numpy()
+                    else:
+                        scores = scores.data.numpy()
                     # sample from distribution
                     exp = np.exp(scores * alpha)
                     softmax = exp / (exp.sum())
@@ -155,7 +161,11 @@ class Network(nn.Module):
                     right,
                     'label',
                     test=True,
-                ).data.numpy()
+                )
+                if GlobalNames.use_gpu:
+                    scores = scores.cpu().data.numpy()
+                else:
+                    scores = scores.data.numpy()
                 if step < (2 * n - 2):
                     action_index = np.argmax(scores)
                 else:
@@ -198,7 +208,11 @@ class Network(nn.Module):
                     right,
                     'struct',
                     test=True,
-                ).data.numpy()
+                )
+                if GlobalNames.use_gpu:
+                    scores = scores.cpu().data.numpy()
+                else:
+                    scores = scores.data.numpy()
                 action_index = np.argmax(scores)
                 action = fm.s_action(action_index)
             state.take_action(action)
@@ -211,7 +225,11 @@ class Network(nn.Module):
                 right,
                 'label',
                 test=True,
-            ).data.numpy()
+            )
+            if GlobalNames.use_gpu:
+                scores = scores.cpu().data.numpy()
+            else:
+                scores = scores.data.numpy()
             if step < (2 * n - 2):
                 action_index = np.argmax(scores)
             else:

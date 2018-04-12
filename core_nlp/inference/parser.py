@@ -212,7 +212,6 @@ class Parser(object):
 
         n = len(tree.sentence)
         state = Parser(n)
-        result = []
 
         for step in range(2 * n - 1):
 

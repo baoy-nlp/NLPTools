@@ -9,6 +9,8 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 
+from core_nlp.utils.global_names import GlobalNames
+
 
 class BiLstmBaseEncoder(nn.Module):
     def __init__(self, input_dims, lstm_dims):
@@ -20,12 +22,19 @@ class BiLstmBaseEncoder(nn.Module):
     def invert_tensor(self, tensor):
         idx = [i for i in range(tensor.size(0) - 1, -1, -1)]
         idx = Variable(torch.LongTensor(idx))
+        if GlobalNames.use_gpu:
+            idx = idx.cuda()
         return tensor.index_select(0, idx)
+
+    def init_hidden(self):
+        var = (Variable(torch.zeros(1, 1, self.lstm_dims)), Variable(torch.zeros(1, 1, self.lstm_dims)))
+        if GlobalNames.use_gpu:
+            var = (var[0].cuda(), var[1].cuda())
+        return var
 
     def forward(self, inputs):
         inputs = inputs.unsqueeze(1)  # compact the tensor to
-        hx = (Variable(torch.zeros(1, 1, self.lstm_dims)), Variable(torch.zeros(1, 1, self.lstm_dims)))
-
+        hx = self.init_hidden()
         fwd_out, hidden = self.fwd_lstm(inputs, hx)
         back_x = self.invert_tensor(inputs)
         back_out, hidden = self.back_lstm(back_x, hx)

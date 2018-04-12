@@ -12,5 +12,3 @@ core-nlp:
 - inference: decoding algorithm
 - models: representation layer
 - utils: core nlp utils
-
-njutagger: an example of model of pytorch's implementation.

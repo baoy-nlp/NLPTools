@@ -12,6 +12,7 @@ import sys
 from core_nlp.models.parser.trainer import generate_vocab
 from core_nlp.models.parser.trainer import test
 from core_nlp.models.parser.trainer import train
+from core_nlp.utils.global_names import GlobalNames
 
 if __name__ == '__main__':
 
@@ -141,7 +142,7 @@ if __name__ == '__main__':
     import os
 
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_ids
-
+    GlobalNames.use_gpu = True if args.gpu_ids != '-1' is not None else False
     print(args)
     fm = generate_vocab(args)
 

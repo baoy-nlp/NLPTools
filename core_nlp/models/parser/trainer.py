@@ -14,7 +14,7 @@ from core_nlp.inference.parser import Parser
 from core_nlp.models.parser.features import FeatureMapper
 from core_nlp.models.parser.network import Network
 from core_nlp.utils.measures import FScore
-
+from core_nlp.utils.global_names import GlobalNames
 
 def generate_vocab(args):
     if args.vocab is not None:
@@ -84,7 +84,6 @@ def train(fm, args):
 
         for b in xrange(num_batches):
             network.zero_grad()
-
             batch = training_data[(b * batch_size): ((b + 1) * batch_size)]
             batch_loss = None
             for example in batch:
@@ -95,8 +94,10 @@ def train(fm, args):
                 else:
                     batch_loss = example_Loss
                 training_acc += acc
-
-            total_cost += batch_loss.data.numpy()[0]
+            if GlobalNames.use_gpu:
+                total_cost += batch_loss.cpu().data.numpy()[0]
+            else:
+                total_cost += batch_loss.data.numpy()[0]
             batch_loss.backward()
             optimizer.step()
 
@@ -118,12 +119,12 @@ def train(fm, args):
                     fm,
                     network,
                 )
-                print('  [Val: {}]'.format(dev_acc))
+                print(' [Dev: {}]'.format(dev_acc))
 
                 if dev_acc > best_acc:
                     best_acc = dev_acc
                     torch.save(network, model_save_file)
-                    print('    [saved model: {}]'.format(model_save_file))
+                    print(' [saved model: {}]'.format(model_save_file))
 
         current_time = time.time()
         runmins = (current_time - start_time) / 60.

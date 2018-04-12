@@ -10,9 +10,35 @@ import torch
 import torch.optim as optimize
 
 from core_nlp.data.phrase_tree import PhraseTree
-from core_nlp.inference.parse import Parser
+from core_nlp.inference.parser import Parser
+from core_nlp.models.parser.features import FeatureMapper
 from core_nlp.models.parser.network import Network
 from core_nlp.utils.measures import FScore
+
+
+def generate_vocab(args):
+    if args.vocab is not None:
+        fm = FeatureMapper.load_json(args.vocab)
+    elif args.train is not None:
+        fm = FeatureMapper(args.train)
+        if args.vocab_output is not None:
+            fm.save_json(args.vocab_output)
+            print('Wrote vocabulary file {}'.format(args.vocab_output))
+            sys.exit()
+    else:
+        print('Must specify either --vocab-file or --train-data.')
+        print('    (Use -h or --help flag for full option list.)')
+        sys.exit()
+    return fm
+
+
+def test(fm, args):
+    test_trees = PhraseTree.load_trees(args.test)
+    print('Loaded test trees from {}'.format(args.test))
+    network = torch.load(args.model)
+    print('Loaded model from: {}'.format(args.model))
+    accuracy = Parser.evaluate_corpus(test_trees, fm, network)
+    print('Accuracy: {}'.format(accuracy))
 
 
 def train(fm, args):

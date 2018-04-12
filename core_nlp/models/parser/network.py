@@ -11,7 +11,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 
-from core_nlp.inference.parse import Parser
+from core_nlp.inference.parser import Parser
 from core_nlp.models.parser.encoder import BILSTMEncoder
 
 torch.manual_seed(1)
@@ -20,11 +20,13 @@ torch.manual_seed(1)
 class Network(nn.Module):
     def __init__(self,
                  fm,
-                 args
+                 args,
+                 cuda=None,
                  ):
         super(Network, self).__init__()
         self.word_emb = nn.Embedding(fm.total_words(), args.word_dims)
         self.tag_emb = nn.Embedding(fm.total_tags(), args.tag_dims)
+        self.is_cuda = True if cuda is not None else False
 
         struct = 4
         label = 3

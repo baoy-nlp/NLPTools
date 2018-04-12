@@ -9,8 +9,8 @@ from __future__ import print_function
 import argparse
 import sys
 
-from core_nlp.data.phrase_tree import PhraseTree
-from core_nlp.models.parser.features import FeatureMapper
+from core_nlp.models.parser.trainer import generate_vocab
+from core_nlp.models.parser.trainer import test
 from core_nlp.models.parser.trainer import train
 
 if __name__ == '__main__':
@@ -19,7 +19,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--gpu-ids',
         dest='gpu_ids',
-        default=-1,
+        default='-1',
         type=str,
         help="-1",
     )
@@ -142,18 +142,8 @@ if __name__ == '__main__':
 
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_ids
 
-    if args.vocab is not None:
-        fm = FeatureMapper.load_json(args.vocab)
-    elif args.train is not None:
-        fm = FeatureMapper(args.train)
-        if args.vocab_output is not None:
-            fm.save_json(args.vocab_output)
-            print('Wrote vocabulary file {}'.format(args.vocab_output))
-            sys.exit()
-    else:
-        print('Must specify either --vocab-file or --train-data.')
-        print('    (Use -h or --help flag for full option list.)')
-        sys.exit()
+    print(args)
+    fm = generate_vocab(args)
 
     if args.model is None:
         print('Must specify --model or (or --write-vocab) parameter.')
@@ -161,15 +151,6 @@ if __name__ == '__main__':
         sys.exit()
 
     if args.test is not None:
-        from parser import Parser
-        import torch
-
-        test_trees = PhraseTree.load_trees(args.test)
-        print('Loaded test trees from {}'.format(args.test))
-        network = torch.load(args.model)
-        print('Loaded model from: {}'.format(args.model))
-        accuracy = Parser.evaluate_corpus(test_trees, fm, network)
-        print('Accuracy: {}'.format(accuracy))
+        test(fm, args)
     elif args.train is not None:
-
         train(fm, args)

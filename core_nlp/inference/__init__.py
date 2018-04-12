@@ -1,1 +1,1 @@
-from core_nlp.inference.parse import Parser
+from core_nlp.inference.parser import Parser

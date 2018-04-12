@@ -9,7 +9,7 @@ from collections import defaultdict, OrderedDict
 import numpy as np
 
 from core_nlp.data.phrase_tree import PhraseTree
-from core_nlp.inference.parse import Parser
+from core_nlp.inference.parser import Parser
 
 
 class FeatureMapper(object):

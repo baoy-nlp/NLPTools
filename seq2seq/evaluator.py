@@ -122,7 +122,9 @@ class Evaluator(object):
             batch_size = decoder_hidden.size(1)
             for i in range(batch_size):
                 length = other['length'][i]
-                seq = result_tensor[i].data.numpy()
+
+                seq = result_tensor[i].cpu() if torch.cuda.is_available() else result_tensor[i]
+                seq = seq.data.numpy()
                 extract_batch_predict(seq[:length], tgt_vocab)
         write_docs(GlobalNames.mid_res_file, docs=result)
         # if total == 0:

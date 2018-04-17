@@ -63,3 +63,27 @@ class BILSTMEncoder(nn.Module):
         back = torch.cat([back1, back2], dim=-1)
 
         return fwd, back
+
+
+if __name__ == "__main__":
+    """
+    test module of bilstm fixed
+    """
+
+    x_inputs = Variable(torch.Tensor(5, 3))
+
+    hidden = (Variable(torch.zeros(2, 1, 3)), Variable(torch.zeros(2, 1, 3)))
+
+    plstm = nn.LSTM(3, 3, bidirectional=True)
+
+    slstm = BiLstmBaseEncoder(3, 3)
+
+    fwd, back = slstm(x_inputs)
+    print("self result")
+    print(torch.cat([fwd, back], dim=-1))
+
+    x_inputs = x_inputs.unsqueeze(1)
+    out, _ = plstm(x_inputs, hidden)
+    out = out.view(5, 1, 6)
+    print("lib result")
+    print(out)

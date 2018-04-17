@@ -52,6 +52,15 @@ class Network(nn.Module):
         if GlobalNames.use_gpu:
             self.cuda()
 
+    def init_weight(self):
+        """
+        Init the all the parameter of model, including:
+            Embedding
+            Linear W
+            Linear B
+        """
+        pass
+
     def prepare_sequence(self, seq):
         tensor = torch.LongTensor(seq)
         if GlobalNames.use_gpu:
@@ -236,7 +245,6 @@ class Network(nn.Module):
                 action_index = 1 + np.argmax(scores[1:])
             action = fm.l_action(action_index)
             state.take_action(action)
-
         tree = state.stack[0][2][0]
         tree.propagate_sentence(sentence)
         return tree

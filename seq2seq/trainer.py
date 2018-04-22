@@ -13,6 +13,9 @@ from evaluator import Evaluator
 from global_names import GlobalNames
 from loss import NLLLoss
 from optim import Optimizer
+from parser_utils import write_docs
+
+valid_score = []
 
 
 class SupervisedTrainer(object):
@@ -46,29 +49,31 @@ class SupervisedTrainer(object):
         self.expt_dir = expt_dir
         if not os.path.exists(self.expt_dir):
             os.makedirs(self.expt_dir)
+
+        GlobalNames.mid_dev_file = expt_dir + "/" + GlobalNames.mid_dev_file
+        GlobalNames.mid_res_file = expt_dir + "/" + GlobalNames.mid_res_file
+        GlobalNames.valid_result = expt_dir + "/" + GlobalNames.valid_result
+
         self.batch_size = batch_size
 
         self.logger = logging.getLogger(__name__)
 
     def _train_batch(self, input_variable, input_lengths, target_variable, model, teacher_forcing_ratio):
         loss = self.loss
-        # Forward propagation
         decoder_outputs, decoder_hidden, other = model(input_variable, input_lengths, target_variable,
                                                        teacher_forcing_ratio=teacher_forcing_ratio)
-        # Get loss
         loss.reset()
         for step, step_output in enumerate(decoder_outputs):
             batch_size = target_variable.size(0)
             loss.eval_batch(step_output.contiguous().view(batch_size, -1), target_variable[:, step + 1])
-        # Backward propagation
+
         model.zero_grad()
         loss.backward()
         self.optimizer.step()
-
         return loss.get_loss()
 
-    def _train_epoches(self, data, model, n_epochs, start_epoch, start_step,
-                       dev_data=None, teacher_forcing_ratio=0):
+    def _train_epochs(self, data, model, n_epochs, start_epoch, start_step,
+                      dev_data=None, teacher_forcing_ratio=0):
         log = self.logger
 
         print_loss_total = 0  # Reset every print_every
@@ -87,14 +92,12 @@ class SupervisedTrainer(object):
         step = start_step
         step_elapsed = 0
 
-        best_loss = None
+        best_acc = None
         save_flag = False
 
         for epoch in range(start_epoch, n_epochs + 1):
             log.debug("Epoch: %d, Step: %d" % (epoch, step))
-
             batch_generator = batch_iterator.__iter__()
-            # consuming seen batches from previous training
             for _ in range((epoch - 1) * steps_per_epoch, step):
                 next(batch_generator)
 
@@ -121,34 +124,42 @@ class SupervisedTrainer(object):
                         self.loss.name,
                         print_loss_avg)
                     log.info(log_msg)
+                if step % self.checkpoint_every == 0 or step == total_steps:
+                    if dev_data is not None:
+                        dev_loss, accuracy = self.evaluator.evaluate2(model, dev_data)
+                        valid_score.append(accuracy)
+
+                        write_docs(GlobalNames.valid_result, valid_score)
+
+                        self.optimizer.update(dev_loss, epoch)
+                        log_msg = ", Dev %s: %.4f, Accuracy: %s" % (self.loss.name, dev_loss, accuracy)
+                        model.train(mode=True)
+                        if best_acc is not None:
+                            if accuracy > best_acc:
+                                save_flag = True
+                                best_acc = accuracy
+                        else:
+                            best_acc = accuracy
+                            save_flag = True
+                    else:
+                        save_flag = True
+                        self.optimizer.update(epoch_loss_avg, epoch)
+
+                    if save_flag:
+                        print("***saving model in {} with {} ***".format(self.expt_dir, best_acc))
+                        Checkpoint(model=model,
+                                   optimizer=self.optimizer,
+                                   epoch=epoch, step=step,
+                                   input_vocab=data.fields[GlobalNames.src_field_name].vocab,
+                                   output_vocab=data.fields[GlobalNames.tgt_field_name].vocab).save(self.expt_dir)
+                        save_flag = False
+                    log.info(log_msg)
 
             if step_elapsed == 0: continue
 
             epoch_loss_avg = epoch_loss_total / min(steps_per_epoch, step - start_step)
             epoch_loss_total = 0
             log_msg = "Finished epoch %d: Train %s: %.4f" % (epoch, self.loss.name, epoch_loss_avg)
-            if dev_data is not None:
-                dev_loss, accuracy = self.evaluator.evaluate2(model, dev_data)
-                self.optimizer.update(dev_loss, epoch)
-                log_msg += ", Dev %s: %.4f, Accuracy: %.4f" % (self.loss.name, dev_loss, accuracy)
-                model.train(mode=True)
-                if best_loss is not None:
-                    if dev_loss < best_loss:
-                        save_flag = True
-                else:
-                    best_loss = dev_loss
-                    save_flag = True
-            else:
-                save_flag = True
-                self.optimizer.update(epoch_loss_avg, epoch)
-
-            if save_flag:
-                Checkpoint(model=model,
-                           optimizer=self.optimizer,
-                           epoch=epoch, step=step,
-                           input_vocab=data.fields[GlobalNames.src_field_name].vocab,
-                           output_vocab=data.fields[GlobalNames.tgt_field_name].vocab).save(self.expt_dir)
-
             log.info(log_msg)
 
     def train(self, model, data, num_epochs=5,
@@ -194,7 +205,7 @@ class SupervisedTrainer(object):
 
         self.logger.info("Optimizer: %s, Scheduler: %s" % (self.optimizer.optimizer, self.optimizer.scheduler))
 
-        self._train_epoches(data, model, num_epochs,
-                            start_epoch, step, dev_data=dev_data,
-                            teacher_forcing_ratio=teacher_forcing_ratio)
+        self._train_epochs(data, model, num_epochs,
+                           start_epoch, step, dev_data=dev_data,
+                           teacher_forcing_ratio=teacher_forcing_ratio)
         return model

@@ -12,3 +12,6 @@ core-nlp:
 - inference: decoding algorithm
 - models: representation layer
 - utils: core nlp utils
+
+seq2seq
+an implementation of sequence-to-sequence constituency parsing

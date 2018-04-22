@@ -3,8 +3,6 @@ from __future__ import print_function
 
 import os
 
-from phrase_tree import FScore
-
 
 def write_docs(fname, docs):
     f = open(fname, 'w')
@@ -65,7 +63,7 @@ def seq2tree(translate):
                 new_p = ("(" + p[0] + new_node, True)
                 stack.append(new_p)
     res_list = [s[0] for s in stack]
-    res = "(S " + " ".join(res_list) + ")" if len(res_list) > 1 else res_list[0]
+    res = "(S " + " ".join(res_list) + ")" if len(res_list) > 0 else "(S (XX XX))"
 
     res = post_valid_process(res)
     # tree = PhraseTree.parse(res)
@@ -119,12 +117,13 @@ def post_valid_process(seq):
 
 
 def eval_f1score(predict_file, target_file):
+    from error_analysis import eval_parse
     pred_file = convert_to_ptb(predict_file)
     gold_file = convert_to_ptb(target_file)
-    f1_score = FScore.parseval(gold_file, pred_file)
+    f1_score = eval_parse(gold_file, pred_file)
     os.remove(pred_file)
     os.remove(gold_file)
-    return f1_score.fscore()
+    return f1_score
 
 
 if __name__ == "__main__":

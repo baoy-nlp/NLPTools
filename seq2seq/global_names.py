@@ -3,3 +3,4 @@ class GlobalNames(object):
     tgt_field_name = 'tgt'
     mid_res_file = '.mid_dev.pred'
     mid_dev_file = ".mid_dev.ref"
+    valid_result='.valid.res'

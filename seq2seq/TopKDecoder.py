@@ -164,9 +164,15 @@ class TopKDecoder(torch.nn.Module):
             stored_hidden.append(hidden)
 
         # Do backtracking to return the optimal values
-        output, h_t, h_n, s, l, p = self._backtrack(stored_outputs, stored_hidden,
-                                                    stored_predecessors, stored_emitted_symbols,
-                                                    stored_scores, batch_size, self.hidden_size)
+        output, h_t, h_n, s, l, p = self._backtrack(
+            stored_outputs,
+            stored_hidden,
+            stored_predecessors,
+            stored_emitted_symbols,
+            stored_scores,
+            batch_size,
+            self.hidden_size
+        )
 
         # Build return objects
         decoder_outputs = [step[:, 0, :] for step in output]
@@ -240,13 +246,15 @@ class TopKDecoder(torch.nn.Module):
         batch_eos_found = [0] * b  # the number of EOS found
         # in the backward loop below for each batch
 
-        t = self.rnn.max_length - 1
+        # t = self.rnn.max_length - 1
+        t = len(nw_output) - 1
         # initialize the back pointer with the sorted order of the last step beams.
         # add self.pos_index for indexing variable with b*k as the first dimension.
         t_predecessors = (sorted_idx + self.pos_index.expand_as(sorted_idx)).view(b * self.k)
         while t >= 0:
             # Re-order the variables with the back pointer
-            current_output = nw_output[t].index_select(0, t_predecessors)
+            cur_output_t = nw_output[t]
+            current_output = cur_output_t.index_select(0, t_predecessors)
             if lstm:
                 current_hidden = tuple([h.index_select(1, t_predecessors) for h in nw_hidden[t]])
             else:

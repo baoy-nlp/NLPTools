@@ -1,4 +1,8 @@
+import math
+
+import torch
 import torch.nn as nn
+from torch.autograd import Variable
 
 from baseRNN import BaseRNN
 
@@ -34,20 +38,53 @@ class EncoderRNN(BaseRNN):
 
     """
 
-    def __init__(self, vocab_size, max_len, hidden_size,
-                 input_dropout_p=0, dropout_p=0,
-                 n_layers=1, bidirectional=False, rnn_cell='gru', variable_lengths=False):
+    def __init__(self,
+                 vocab_size,
+                 max_len,
+                 input_size,
+                 hidden_size,
+                 input_dropout_p=0,
+                 dropout_p=0,
+                 n_layers=3,
+                 bidirectional=False,
+                 rnn_cell='gru',
+                 variable_lengths=False,
+                 add_position_embedding=True
+                 ):
         super(EncoderRNN, self).__init__(
-            vocab_size, max_len, hidden_size,
+            vocab_size, max_len, input_size, hidden_size,
             input_dropout_p, dropout_p, n_layers, rnn_cell
         )
-
+        # self.add_position_embedding = add_position_embedding
         self.variable_lengths = variable_lengths
-        self.embedding = nn.Embedding(vocab_size, hidden_size)
+        self.embedding = nn.Embedding(vocab_size, input_size)
         self.rnn = self.rnn_cell(
-            hidden_size, hidden_size, n_layers,
+            input_size, hidden_size, n_layers,
             batch_first=True, bidirectional=bidirectional, dropout=dropout_p
         )
+
+    def _add_pos_embedding(self, x, min_timescale=1.0, max_timescale=1.0e4):
+
+        batch, length, channels = list(x.size())
+        assert (channels % 2 == 0)
+        num_timescales = channels // 2
+        log_timescale_increment = (
+            math.log(float(max_timescale) / float(min_timescale)) /
+            (float(num_timescales) - 1.))
+        position = torch.arange(0, length).float()
+        inv_timescales = torch.arange(0, num_timescales).float()
+        if x.is_cuda:
+            position = position.cuda()
+            inv_timescales = inv_timescales.cuda()
+
+        inv_timescales.mul_(-log_timescale_increment).exp_().mul_(min_timescale)
+        scaled_time = position.unsqueeze(1).expand(
+            length, num_timescales) * inv_timescales.unsqueeze(0).expand(length, num_timescales)
+        # scaled time is now length x num_timescales
+        # length x channels
+        signal = torch.cat([scaled_time.sin(), scaled_time.cos()], 1)
+
+        return Variable(signal.unsqueeze(0).expand(batch, length, channels), requires_grad=False)
 
     def forward(self, input_var, input_lengths=None):
         """
@@ -63,6 +100,8 @@ class EncoderRNN(BaseRNN):
             - **hidden** (num_layers * num_directions, batch, hidden_size): variable containing the features in the hidden state h
         """
         embedded = self.embedding(input_var)
+        # if self.add_position_embedding:
+        #     embedded += self._add_pos_embedding(embedded)
         embedded = self.input_dropout(embedded)
         if self.variable_lengths:
             embedded = nn.utils.rnn.pack_padded_sequence(embedded, input_lengths, batch_first=True)

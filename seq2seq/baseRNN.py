@@ -27,10 +27,11 @@ class BaseRNN(nn.Module):
     SYM_MASK = "MASK"
     SYM_EOS = "EOS"
 
-    def __init__(self, vocab_size, max_len, hidden_size, input_dropout_p, dropout_p, n_layers, rnn_cell):
+    def __init__(self, vocab_size, max_len, input_size, hidden_size, input_dropout_p, dropout_p, n_layers, rnn_cell):
         super(BaseRNN, self).__init__()
         self.vocab_size = vocab_size
         self.max_len = max_len
+        self.input_size = input_size
         self.hidden_size = hidden_size
         self.n_layers = n_layers
         self.input_dropout_p = input_dropout_p

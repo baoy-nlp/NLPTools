@@ -153,3 +153,33 @@ class Perplexity(NLLLoss):
             print("WARNING: Loss exceeded maximum value, capping to e^100")
             return math.exp(Perplexity._MAX_EXP)
         return math.exp(nll)
+
+
+class CrossEntropyLoss(Loss):
+    _NAME = "Cross Entropy Loss"
+
+    def __init__(self, weight=None, mask=None, size_average=True):
+        self.mask = mask
+        self.size_average = size_average
+        if mask is not None:
+            if weight is None:
+                raise ValueError("Must provide weight with a mask.")
+            weight[mask] = 0
+
+        super(CrossEntropyLoss, self).__init__(
+            self._NAME,
+            nn.CrossEntropyLoss(weight=weight, size_average=size_average))
+
+    def get_loss(self):
+        if isinstance(self.acc_loss, int):
+            return 0
+        # total loss for all batches
+        loss = self.acc_loss.data[0]
+        if self.size_average:
+            # average loss per batch
+            loss /= self.norm_term
+        return loss
+
+    def eval_batch(self, outputs, target):
+        self.acc_loss += self.criterion(outputs, target)
+        self.norm_term += 1

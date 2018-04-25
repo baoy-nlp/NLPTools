@@ -11,7 +11,7 @@ from __future__ import print_function
 
 from collections import defaultdict
 
-from core_nlp.utils.measures import FScore
+from transition.utils.measures import FScore
 
 
 class PhraseTree(object):

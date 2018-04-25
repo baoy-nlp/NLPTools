@@ -3,9 +3,9 @@ from __future__ import print_function, division
 import torch
 import torchtext
 
+from analysis_utils import write_docs, eval_f1score2
 from global_names import GlobalNames
 from loss import NLLLoss
-from parser_utils import write_docs, eval_f1score
 
 
 class Evaluator(object):
@@ -131,7 +131,7 @@ class Evaluator(object):
                 ref.append(extract_batch_predict(target, tgt_vocab))
         write_docs(GlobalNames.mid_res_file, docs=result)
         write_docs(GlobalNames.mid_dev_file, docs=ref)
-        accuracy = eval_f1score(GlobalNames.mid_res_file, GlobalNames.mid_dev_file)
+        accuracy = eval_f1score2(GlobalNames.mid_res_file, GlobalNames.mid_dev_file, GlobalNames.fm)
 
         return loss.get_loss(), accuracy
 
@@ -190,6 +190,7 @@ class Evaluator(object):
                 ref.append(extract_batch_predict(target, tgt_vocab))
         write_docs(GlobalNames.mid_res_file, docs=result)
         write_docs(GlobalNames.mid_dev_file, docs=ref)
-        accuracy = eval_f1score(GlobalNames.mid_res_file, GlobalNames.mid_dev_file)
+        print(GlobalNames.mid_res_file)
+        accuracy = eval_f1score2(GlobalNames.mid_res_file, GlobalNames.mid_dev_file, GlobalNames.fm)
 
         return accuracy

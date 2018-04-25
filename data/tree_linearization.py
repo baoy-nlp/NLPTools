@@ -42,6 +42,26 @@ def top_down_linearization(tree_string):
     return str.join(" ", words), str.join(" ", tags[1:-1])  # Strip "TOP" tag.
 
 
+def no_rb_top_down_linearization(tree_string):
+    stack, tags, words = [], [], []
+    right_brack = "/BRK"
+    for tok in tree_string.strip().split():
+        if tok[0] == "(":
+            symbol = tok[1:]
+            tags.append(symbol)
+            stack.append(symbol)
+        else:
+            assert tok[-1] == ")"
+            stack.pop()  # Pop the POS-tag.
+            while tok[-2] == ")":
+                top = stack.pop()
+                # tags.append("/" + top)
+                tags.append(right_brack)
+                tok = tok[:-1]
+            words.append(tok[:-1])
+    return str.join(" ", words), str.join(" ", tags[1:-1])  # Strip "TOP" tag.
+
+
 def process_tree_bank(input_file, output_file, func=rep_TD_linearization):
     res = []
     with open(input_file, 'r') as tree_file:

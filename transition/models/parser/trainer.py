@@ -9,12 +9,12 @@ import numpy as np
 import torch
 import torch.optim as optimize
 
-from core_nlp.data.phrase_tree import PhraseTree
-from core_nlp.inference.parser import Parser
-from core_nlp.models.parser.features import FeatureMapper
-from core_nlp.models.parser.network import Network
-from core_nlp.utils.measures import FScore
-from core_nlp.utils.global_names import GlobalNames
+from transition.data.phrase_tree import PhraseTree
+from transition.inference.parser import Parser
+from transition.models.parser.features import FeatureMapper
+from transition.models.parser.network import Network
+from transition.utils.measures import FScore
+from transition.utils.global_names import GlobalNames
 
 def generate_vocab(args):
     if args.vocab is not None:

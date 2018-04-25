@@ -89,7 +89,7 @@ class PhraseTree(object):
         "((...) (...) w/t (...)). returns pos and tree, and carries sent out."
 
         if not line[index] == '(':
-            print("Invalid tree string {} at {}".format(line, index))
+            print("Invalid start tree string {} at {}".format(line, index))
             return None, PhraseTree()
         index += 1
         symbol = None
@@ -120,7 +120,7 @@ class PhraseTree(object):
                 index += 1
 
         if not line[index] == ')':
-            print("Invalid tree string %s at %d" % (line, index))
+            print("Invalid end tree string %s at %d" % (line, index))
             return None, PhraseTree()
 
         t = PhraseTree(
@@ -152,7 +152,7 @@ class PhraseTree(object):
                 self._right_span = self.children[-1].right_span()
             return self._right_span
 
-    def _brackets(self, advp_prt=True, counts=None):
+    def brackets(self, advp_prt=True, counts=None):
 
         if counts is None:
             counts = defaultdict(int)
@@ -164,6 +164,8 @@ class PhraseTree(object):
         if advp_prt and nonterm == 'PRT':
             nonterm = 'ADVP'
 
+        if len(self.children) <= 0:
+            return counts
         left = self.left_span()
         right = self.right_span()
 
@@ -180,40 +182,6 @@ class PhraseTree(object):
 
         if left <= right and nonterm != 'TOP':
             counts[(nonterm, left, right)] += 1
-
-        for child in self.children:
-            child.origin_brackets(advp_prt=advp_prt, counts=counts)
-
-        return counts
-
-    def brackets(self, advp_prt=True, counts=None):
-
-        if counts is None:
-            counts = defaultdict(int)
-
-        if self.leaf is not None:
-            return {}
-
-        nonterm = self.symbol
-        if advp_prt and nonterm == 'PRT':
-            nonterm = 'ADVP'
-
-        left = self.left_span()
-        right = self.right_span()
-
-        # ignore punctuation
-        while (
-                        left < len(self.sentence) and
-                        self.sentence[left][1] in PhraseTree.puncs
-        ):
-            left += 1
-        while (
-                        right > 0 and self.sentence[right][1] in PhraseTree.puncs
-        ):
-            right -= 1
-
-        if left <= right and nonterm != 'TOP':
-            counts[(left, right)] = 1
 
         for child in self.children:
             child.brackets(advp_prt=advp_prt, counts=counts)

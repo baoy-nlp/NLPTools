@@ -11,9 +11,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 
-from core_nlp.inference.parser import Parser
-from core_nlp.models.parser.encoder import BILSTMEncoder
-from core_nlp.utils.global_names import GlobalNames
+from transition.inference.parser import Parser
+from transition.models.parser.encoder import BILSTMEncoder
+from transition.utils.global_names import GlobalNames
 
 torch.manual_seed(1)
 

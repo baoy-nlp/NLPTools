@@ -9,10 +9,10 @@ from __future__ import print_function
 import argparse
 import sys
 
-from core_nlp.models.parser.trainer import generate_vocab
-from core_nlp.models.parser.trainer import test
-from core_nlp.models.parser.trainer import train
-from core_nlp.utils.global_names import GlobalNames
+from transition.models.parser.trainer import generate_vocab
+from transition.models.parser.trainer import test
+from transition.models.parser.trainer import train
+from transition.utils.global_names import GlobalNames
 
 if __name__ == '__main__':
 

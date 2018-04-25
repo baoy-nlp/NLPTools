@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 
-from core_nlp.utils.global_names import GlobalNames
+from transition.utils.global_names import GlobalNames
 
 
 class BiLstmBaseEncoder(nn.Module):

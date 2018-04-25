@@ -8,8 +8,8 @@ from collections import defaultdict, OrderedDict
 
 import numpy as np
 
-from core_nlp.data.phrase_tree import PhraseTree
-from core_nlp.inference.parser import Parser
+from transition.data.phrase_tree import PhraseTree
+from transition.inference.parser import Parser
 
 
 class FeatureMapper(object):

@@ -6,8 +6,8 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from core_nlp.data.phrase_tree import PhraseTree
-from core_nlp.utils.measures import FScore
+from transition.data.phrase_tree import PhraseTree
+from transition.utils.measures import FScore
 
 
 class Parser(object):

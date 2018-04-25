@@ -1,6 +1,11 @@
 *.pyc
 *.s2s
 *.s2t
+*.s2b
+*.pt
+*.model
+*.json
 *.clean
 *.txt
 *.data
+*.xml

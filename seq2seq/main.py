@@ -49,7 +49,7 @@ if __name__ == "__main__":
     parser.add_argument('--max_len', dest='max_len', type=int, default=150)
     parser.add_argument('--lr', dest='lr', type=float, default=1e-3)
     parser.add_argument('--grad_norm', dest='grad_norm', type=float, default=5.0)
-    parser.add_argument('--rnn_layers', dest='rnn_layers', type=int, default=2)
+    parser.add_argument('--rnn_layers', dest='rnn_layers', type=int, default=1)
 
     opt = parser.parse_args()
     batch_size = opt.batch_size

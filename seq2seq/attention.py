@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from torch.autograd import Variable
+
 
 class Attention(nn.Module):
     r"""
@@ -31,11 +33,10 @@ class Attention(nn.Module):
 
     Examples::
 
-         >>> attention = seq2seq.models.Attention(256)
+         >>> attention = Attention(256)
          >>> context = Variable(torch.randn(5, 3, 256))
          >>> output = Variable(torch.randn(5, 5, 256))
          >>> output, attn = attention(output, context)
-
     """
 
     def __init__(self, dim):
@@ -53,14 +54,19 @@ class Attention(nn.Module):
         self.mask = mask
 
     def forward(self, output, context):
-        batch_size = output.size(0)
-        hidden_size = output.size(2)
-        input_size = context.size(1)
+        """
+        Args:
+            output:(batch, out_len, dim)
+            context:(batch, in_len, dim)
+        """
+        batch_size = output.size(0)  # batch_size
+        hidden_size = output.size(2)  # hidden_dim
+        context_size = context.size(1)  # input_len
         # (batch, out_len, dim) * (batch, in_len, dim) -> (batch, out_len, in_len)
-        attn = torch.bmm(output, context.transpose(1, 2))
+        attn = torch.bmm(output, context.transpose(1, 2))  #
         if self.mask is not None:
             attn.data.masked_fill_(self.mask, -float('inf'))
-        attn = F.softmax(attn.view(-1, input_size)).view(batch_size, -1, input_size)
+        attn = F.softmax(attn.view(-1, context_size), dim=1).view(batch_size, -1, context_size)
 
         # (batch, out_len, in_len) * (batch, in_len, dim) -> (batch, out_len, dim)
         mix = torch.bmm(attn, context)

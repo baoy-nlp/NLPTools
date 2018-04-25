@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 cd ..
-python -m core_nlp.interface.parser_main \
+python -m transition.interface.parser_main \
     --model testdata/toy.model \
     --epochs 50 \
     --batch-size 2 \

@@ -1,5 +1,5 @@
-from seq2seq.parser_utils import write_docs
-from seq2seq.parser_utils import eval_f1score
+from seq2seq.analysis_utils import write_docs
+from seq2seq.analysis_utils import eval_f1score
 
 fname = '.mid_dev.pred'
 

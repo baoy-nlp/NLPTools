@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 cd ..
-python -m core_nlp.interface.parser_main \
+python -m transition.interface.parser_main \
     --model ~/experiments/pytorch-origin-gpu.model \
     --gpu-id 0 \
     --vocab ~/experiments/transformer-ptb.vocab \

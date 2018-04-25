@@ -13,7 +13,7 @@ from evaluator import Evaluator
 from global_names import GlobalNames
 from loss import NLLLoss
 from optim import Optimizer
-from parser_utils import write_docs
+from analysis_utils import write_docs
 
 valid_score = []
 
@@ -132,7 +132,7 @@ class SupervisedTrainer(object):
                         write_docs(GlobalNames.valid_result, valid_score)
 
                         self.optimizer.update(dev_loss, epoch)
-                        log_msg = ", Dev %s: %.4f, Accuracy: %s" % (self.loss.name, dev_loss, accuracy)
+                        log_msg = "Dev %s: %.4f, Accuracy: %s" % (self.loss.name, dev_loss, accuracy)
                         model.train(mode=True)
                         if best_acc is not None:
                             if accuracy > best_acc:

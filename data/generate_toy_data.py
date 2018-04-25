@@ -32,7 +32,6 @@ def generate_dataset(root, name, size):
         fout.write("\n".join([str(i) for i in range(10)]))
     tgt_vocab = os.path.join(path, 'vocab.target')
     shutil.copy(src_vocab, tgt_vocab)
-    # pass
 
 
 if __name__ == '__main__':
